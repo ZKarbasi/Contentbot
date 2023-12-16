@@ -1,0 +1,71 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Settings {
+  key   String @id @unique
+  value String
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  tg_chatid Int?    @unique
+  name      String
+  username  String  @unique // user can not have @username
+  is_admin  Boolean
+
+  forms       FilledForm[] // forms filled
+  messages    ArchivedMessage[]
+  acceptances FormAcceptance[]
+
+  @@index([tg_chatid])
+}
+
+model FilledForm {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime
+
+  user_chat_id Int
+  user         User @relation(fields: [user_chat_id], references: [tg_chatid])
+
+  answers String // JSON
+
+  acceptances     FormAcceptance[]
+  ArchivedMessage ArchivedMessage[]
+}
+
+model FormAcceptance {
+  id Int @id @default(autoincrement())
+
+  form_id Int
+  form    FilledForm @relation(fields: [form_id], references: [id])
+
+  accepted_by_tg_chatid Int // is accepted by admins
+  accepted_by           User @relation(fields: [accepted_by_tg_chatid], references: [tg_chatid])
+
+  timestamp DateTime
+}
+
+model ArchivedMessage {
+  id   Int @id @default(autoincrement())
+  kind Int // enum PurposeOfMessage
+
+  user User @relation(fields: [tg_chatid], references: [tg_chatid])
+
+  form_id Int?
+  form    FilledForm? @relation(fields: [form_id], references: [id])
+
+  tg_chatid Int
+  msg_id    Int
+
+  reply_to_user_chatid Int?
+  reply_to_msg_id      Int?
+
+  @@index([tg_chatid, msg_id])
+}

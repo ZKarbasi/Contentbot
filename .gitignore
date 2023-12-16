@@ -1,0 +1,16 @@
+node_modules/
+.vscode/
+
+*.play
+play.*
+*.temp
+
+*.sqlite3
+*.sqlite
+*.db
+*.db-journal
+
+.env
+*.exe
+
+migrations/
